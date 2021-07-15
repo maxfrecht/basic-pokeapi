@@ -16,8 +16,8 @@ class Pokemon
     private string $name;
     private int $weight;
     private int $base_exp;
-    private string $artwork;
-    private string $sprite;
+    private ?string $artwork;
+    private ?string $sprite;
 
     /**
      * Pokemon constructor.
@@ -28,7 +28,7 @@ class Pokemon
      * @param string $artwork
      * @param string $sprite
      */
-    public function __construct(string $id, string $name, int $weight, int $base_exp, string $artwork, string $sprite)
+    public function __construct(string $id, string $name, int $weight, int $base_exp, string $sprite = 'not available', string $artwork = 'not available')
     {
         $this->id = $id;
         $this->name = $name;
