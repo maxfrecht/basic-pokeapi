@@ -1,0 +1,17 @@
+{
+    "name": "maxime/basic-pokeapi",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Maxime\\BasicPokeapi\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Maxime Freychet",
+            "email": "max.frecht@gmail.com"
+        }
+    ],
+    "require": {}
+}
