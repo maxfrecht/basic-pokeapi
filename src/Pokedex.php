@@ -15,6 +15,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class Pokedex
 {
     private HttpClientInterface $client;
+
 //    private array $pokemons;
 
     public function __construct()
@@ -61,20 +62,38 @@ class Pokedex
 
     public function getAllPokemons(string $url = null): ?array
     {
-        $response = $this->client->request('GET', $url ?? 'pokemon/');
+        //Get response
         try {
-            $data = $response->toArray();
+            $response = $this->client->request('GET', $url ?? 'pokemon/');
+        } catch (TransportExceptionInterface $e) {
+            echo $e->getMessage();
+        }
+
+
+        try {
+            if (!empty($response)) {
+                $data = $response->toArray();
+            }
             $pokemons = [];
-            foreach($data["results"] as $pokemon) {
-                try {
-                    $pokemonId = explode('/', $pokemon["url"]);
-                    $pokemonId = intval($pokemonId[6]);
-                    $pokemons[] = $this->getPokemonById($pokemonId);
-                } catch (TransportExceptionInterface $e) {
-                    echo $e->getMessage();
+            if (isset($data)) {
+
+                foreach ($data["results"] as $pokemon) {
+                    try {
+//                        $pokemonId = explode('/', $pokemon["url"]);
+//                        $pokemonId = intval($pokemonId[6]);
+                        if (!preg_match('/([0-9]+)\/?$/', $pokemon['url'], $matches)) {
+                            throw new \RuntimeException('Cannot match given url for pokemon ' . $pokemon['name']);
+                        }
+                        $pokemonId = intval($matches[0]);
+                        $pokemons[] = $this->getPokemonById($pokemonId);
+                    } catch (TransportExceptionInterface $e) {
+                        echo $e->getMessage();
+                    }
                 }
             }
-            if(isset($data["next"])) {
+
+            //Get next pokemons recursively if page exists
+            if (isset($data["next"])) {
                 $newUrl = explode('v2/', $data["next"])[1];
                 $pokemons = array_merge($pokemons, $this->getAllPokemons($newUrl));
             }
@@ -82,6 +101,9 @@ class Pokedex
             echo $e->getMessage();
         }
 
-        return $pokemons;
+        if (isset($pokemons)) {
+            return $pokemons;
+        }
+        return null;
     }
 }

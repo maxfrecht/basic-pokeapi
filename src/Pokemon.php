@@ -98,6 +98,4 @@ class Pokemon
     {
         return $this->sprite;
     }
-
-
 }

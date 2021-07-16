@@ -4,7 +4,7 @@
  */
 require_once __DIR__ . '/../vendor/autoload.php';
 $pokedex = new \Maxime\BasicPokeapi\Pokedex();
-//header('Content-Type: application/json');
+header('Content-Type: application/json');
 try {
     echo json_encode($pokedex->getAllPokemons());
     //$pokedex->getAllPokemons();
