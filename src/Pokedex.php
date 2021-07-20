@@ -21,7 +21,6 @@ class Pokedex
     public function __construct()
     {
         $this->client = HttpClient::createForBaseUri('https://pokeapi.co/api/v2/');
-        $this->pokemons = [];
     }
 
     /**
@@ -43,9 +42,9 @@ class Pokedex
                 $pokemonData['name'],
                 $pokemonData['weight'],
                 $pokemonData['base_experience'],
+                $pokemonData["sprites"]["front_default"] ?? 'not available',
                 $pokemonData['sprites']["other"]["dream_world"]["front_default"] ??
-                $pokemonData['sprites']["other"]["official-artwork"]["front_default"] ?? 'not available',
-                $pokemonData["sprites"]["front_default"] ?? 'not available'
+                $pokemonData['sprites']["other"]["official-artwork"]["front_default"] ?? 'not available'
             );
             return $pokemon->toArray();
         } catch (
@@ -60,11 +59,16 @@ class Pokedex
         }
     }
 
-    public function getAllPokemons(string $url = null): ?array
+    public function getAllPokemons(int $offset = 0, int $limit = 300): ?array
     {
         //Get response
         try {
-            $response = $this->client->request('GET', $url ?? 'pokemon/');
+            $response = $this->client->request('GET', 'pokemon/', [
+                'query' => [
+                    'offset' => $offset,
+                    'limit' => $limit
+                ]
+            ]);
         } catch (TransportExceptionInterface $e) {
             echo $e->getMessage();
         }
@@ -94,8 +98,15 @@ class Pokedex
 
             //Get next pokemons recursively if page exists
             if (isset($data["next"])) {
-                $newUrl = explode('v2/', $data["next"])[1];
-                $pokemons = array_merge($pokemons, $this->getAllPokemons($newUrl));
+                if (!preg_match('/\?.*offset=([0-9]+)/', $data['next'], $matches)) {
+                    throw new \RuntimeException('Cannot match offset on next page.');
+                }
+
+                $nextOffset = $matches[1];
+
+                $nextPokemons = $this->getAllPokemons($nextOffset);
+
+                $pokemons = array_merge($pokemons, $nextPokemons);
             }
         } catch (ClientExceptionInterface | DecodingExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface | TransportExceptionInterface $e) {
             echo $e->getMessage();
